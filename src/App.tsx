@@ -40,23 +40,26 @@ import ProfileCompletionDialog from './components/ProfileCompletionDialog'; // I
 import { doc, onSnapshot } from 'firebase/firestore'; // Added onSnapshot
 import AdminMessages from './components/admin/AdminMessages'; // Import the AdminMessages component
 import { db } from './lib/firebase'; // Added db import
+import LiveTest from './components/live/LiveTest';
+import QuizManagementDashboard from './components/live/QuizManagementDashboard';
+import AttendLiveQuiz from './components/live/AttendLiveQuiz';
 
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const { currentUser, isAdmin, logout } = useAuth(); 
+  const { currentUser, isAdmin, logout } = useAuth();
   const [showProfileDialog, setShowProfileDialog] = useState(false);
 
   useEffect(() => {
     if (currentUser && currentUser.providerData.some(p => p.providerId === 'google.com')) {
       const userDocRef = doc(db, 'users', currentUser.uid);
-      
+
       // Use onSnapshot to listen for real-time changes to the user document
       const unsubscribeFirestore = onSnapshot(userDocRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           // Check isNewUser from Firestore doc AND profile fields
           if (data.isNewUser === true &&
-              (!data.currentStandard || !data.examType || !data.phoneNumber || !data.province || !data.district || !data.college)
+            (!data.currentStandard || !data.examType || !data.phoneNumber || !data.province || !data.district || !data.college)
           ) {
             setShowProfileDialog(true);
           } else {
@@ -99,204 +102,224 @@ function App() {
     <HelmetProvider>
       <div className="min-h-screen bg-gray-50">
         <Toaster position="top-right" />
-        <ProfileCompletionDialog 
-          isOpen={showProfileDialog} 
-          onClose={() => setShowProfileDialog(false)} 
+        <ProfileCompletionDialog
+          isOpen={showProfileDialog}
+          onClose={() => setShowProfileDialog(false)}
         />
         <Routes>
-            <Route path="/" element={
-              currentUser ? (
-                // Check if user is verified before redirecting
-                currentUser.providerData[0]?.providerId === 'password' && 
-                !currentUser.emailVerified && 
+          <Route path="/" element={
+            currentUser ? (
+              // Check if user is verified before redirecting
+              currentUser.providerData[0]?.providerId === 'password' &&
+                !currentUser.emailVerified &&
                 currentUser.email !== 'note@admin.notelibrary.com' ? (
-                  // Show home page with login overlay for unverified users
-                  <>
-                    <Header onLoginClick={() => setIsLoginOpen(true)} />
-                    <main>
-                      <Hero />
-                      <Features />
-                      <Notes /> 
-                      <Testimonials />
-                      <GPACalculator />
-                      <ContactUs />
-                    </main>
-                    <Footer />
-                    <LoginOverlay 
-                      isOpen={true} 
-                      onClose={handleUnverifiedUserClose} 
-                      forceEmailVerification={true}
-                    />
-                  </>
-                ) : (
-                  <Navigate to={isAdmin ? "/admin" : "/student"} replace />
-                )
-              ) : (
+                // Show home page with login overlay for unverified users
                 <>
                   <Header onLoginClick={() => setIsLoginOpen(true)} />
                   <main>
                     <Hero />
                     <Features />
-                    <Notes /> 
+                    <Notes />
                     <Testimonials />
                     <GPACalculator />
                     <ContactUs />
                   </main>
                   <Footer />
-                  <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+                  <LoginOverlay
+                    isOpen={true}
+                    onClose={handleUnverifiedUserClose}
+                    forceEmailVerification={true}
+                  />
                 </>
+              ) : (
+                <Navigate to={isAdmin ? "/admin" : "/student"} replace />
               )
-            } />
-            
-            <Route 
-              path="/admin" 
-              element={
-                <PrivateRoute requireAdmin={true}>
-                  <AdminDashboard />
-                </PrivateRoute>
-              } 
-            >
-              {/* Nested routes for admin section */}
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<div>Admin Dashboard Overview</div>} />
-              <Route path="notes" element={<ManageNotes />} />
-              <Route path="users" element={<ManageUsers />} />
-              <Route path="blogs" element={<ManageBlogs />} />
-              <Route path="quizzes" element={<ManageQuizzes />} />
-              <Route path="testing-quizzes" element={<TestingQuizzes />} />
-              <Route path="community" element={<CommunityApp />} />
-              <Route path="payment-details" element={<AdminPaymentDetail />} />
-              <Route path="messages" element={<AdminMessages />} />
-               {/* Added payment details route */}
-               {/* Uncommented admin community route */}
-            </Route>
-            
-            <Route 
-              path="/student" // Ensures student dashboard is at /student
-              element={
-                <PrivateRoute requireAdmin={false}>
-                  <StudentDashboard />
-                </PrivateRoute>
-              } 
-            >
-              {/* Nested routes for student section */}
-              <Route index element={<Navigate to="dashboard" replace />} /> {/* This makes /student navigate to /student/dashboard */}
-              <Route path="dashboard" element={<StdDashboard />} /> 
-              <Route path="notes" element={<StudentNotes />} />
-              <Route path="quizzes" element={<StudentQuizzes />} />
-              <Route path="blogs" element={<StudentBlogs />} />
-              <Route path="community" element={<CommunityApp />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="quiz-demo" element={<QuizDemo />} /> {/* Added quiz demo route for testing */}
-              {/* Add other student-specific routes here e.g. notes, tests */}
-            </Route>
+            ) : (
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <main>
+                  <Hero />
+                  <Features />
+                  <Notes />
+                  <Testimonials />
+                  <GPACalculator />
+                  <ContactUs />
+                </main>
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            )
+          } />
 
-            <Route 
-              path="/notes" 
-              element={
-                <>
-                  <Header onLoginClick={() => setIsLoginOpen(true)} />
-                  <AllNotes />
-                  <Footer />
-                  <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-                </>
-              } 
-            />
-            <Route
-                  path="/ioe-predictor"
-                  element={
-                    <>
-                      <Header onLoginClick={() => setIsLoginOpen(true)} />
-                      <IOEPredictor />
-                      <Footer />
-                      <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-                    </>
-                  }
-            />  
-            <Route 
-              path="/testing-notes" 
-              element={
-                <>
-                  <Header onLoginClick={() => setIsLoginOpen(true)} />
-                  <TestingNote />
-                  <Footer />
-                  <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-                </>
-              } 
-            />
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute requireAdmin={true}>
+                <AdminDashboard />
+              </PrivateRoute>
+            }
+          >
+            {/* Nested routes for admin section */}
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<div>Admin Dashboard Overview</div>} />
+            <Route path="notes" element={<ManageNotes />} />
+            <Route path="users" element={<ManageUsers />} />
+            <Route path="blogs" element={<ManageBlogs />} />
+            <Route path="quizzes" element={<ManageQuizzes />} />
+            <Route path="testing-quizzes" element={<TestingQuizzes />} />
+            <Route path="community" element={<CommunityApp />} />
+            <Route path="payment-details" element={<AdminPaymentDetail />} />
+            <Route path="messages" element={<AdminMessages />} />
+            {/* Added payment details route */}
+            {/* Uncommented admin community route */}
+          </Route>
 
-            <Route 
-              path="/testing-notes/:slug" 
-              element={
-                <>
-                  <Header onLoginClick={() => setIsLoginOpen(true)} />
-                  <TestingNoteDetail />
-                  <Footer />
-                  <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-                </>
-              } 
-            />
-            <Route 
-              path="/Test-series" 
-              element={
-                <>
-                  <Header onLoginClick={() => setIsLoginOpen(true)} />
-                  <SubscriptionInfo />
-                  <Footer />
-                  <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-                </>
-              }
-            />
-            <Route 
-              path="/notes/:slug" 
-              element={
-                <>
-                  <Header onLoginClick={() => setIsLoginOpen(true)} />
-                  <NoteDetails />
-                  <Footer />
-                  <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-                </>
-              } 
-            />
+          <Route
+            path="/student" // Ensures student dashboard is at /student
+            element={
+              <PrivateRoute requireAdmin={false}>
+                <StudentDashboard />
+              </PrivateRoute>
+            }
+          >
+            {/* Nested routes for student section */}
+            <Route index element={<Navigate to="dashboard" replace />} /> {/* This makes /student navigate to /student/dashboard */}
+            <Route path="dashboard" element={<StdDashboard />} />
+            <Route path="notes" element={<StudentNotes />} />
+            <Route path="quizzes" element={<StudentQuizzes />} />
+            <Route path="blogs" element={<StudentBlogs />} />
+            <Route path="community" element={<CommunityApp />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="quiz-demo" element={<QuizDemo />} /> {/* Added quiz demo route for testing */}
+            {/* Add other student-specific routes here e.g. notes, tests */}
 
-            <Route 
-              path="/blogs" 
-              element={
-                <>
-                  <Header onLoginClick={() => setIsLoginOpen(true)} />
-                  <Blogs />
-                  <Footer />
-                  <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-                </>
-              } 
-            />
-           <Route 
-              path="/community" 
-              element={
-                <>
-                  <Header onLoginClick={() => setIsLoginOpen(true)} />
-                  <CommunityApp standalone={true} />
-                  <Footer />
-                  <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-                </>
-              }
-            />
+          </Route>
+
+          <Route
+            path="/notes"
+            element={
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <AllNotes />
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            }
+          />
 
 
-            <Route 
-              path="/blogs/:slug" 
-              element={
-                <>
-                  <Header onLoginClick={() => setIsLoginOpen(true)} />
-                  <BlogPost />
-                  <Footer />
-                  <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-                </>
-              } 
-            />
-          </Routes>
-        </div>
-      </HelmetProvider>
+          <Route
+            path="/ioe-predictor"
+            element={
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <IOEPredictor />
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            }
+          />
+          <Route
+            path="/testing-notes"
+            element={
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <TestingNote />
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            }
+          />
+
+          <Route
+            path="/testing-notes/:slug"
+            element={
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <TestingNoteDetail />
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            }
+          />
+          <Route
+            path="/Test-series"
+            element={
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <SubscriptionInfo />
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            }
+          />
+          <Route
+            path="/notes/:slug"
+            element={
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <NoteDetails />
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            }
+          />
+
+          <Route
+            path="/blogs"
+            element={
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <Blogs />
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            }
+          />
+          <Route
+            path="/community"
+            element={
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <CommunityApp standalone={true} />
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            }
+          />
+
+
+          <Route
+            path="/blogs/:slug"
+            element={
+              <>
+                <Header onLoginClick={() => setIsLoginOpen(true)} />
+                <BlogPost />
+                <Footer />
+                <LoginOverlay isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+              </>
+            }
+          />
+
+          <Route
+            path="/live"
+            element={<LiveTest />}
+          />
+          <Route
+            path="/live/create"
+            element={<QuizManagementDashboard />}
+          />
+          
+          {/* live test, first in all data, which is archive=false, will appear here automatically */}
+          <Route
+            path="/live/attend"
+            element={<AttendLiveQuiz />}
+          />
+
+
+        </Routes>
+      </div>
+    </HelmetProvider>
   );
 }
 

@@ -2144,8 +2144,8 @@ export const SUBJECT_DATA = {
 export type Preset = {
   label: string;
   subjects: {
-    11: Record<SubjectType, SubjectDetail>;
-    12: Record<SubjectType, SubjectDetail>;
+    11: Record<any, SubjectDetail>;
+    12: Record<any, SubjectDetail>;
   };
 };
 

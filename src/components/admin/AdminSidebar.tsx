@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
   { to: '/admin/notes', icon: FiFileText, label: 'Manage Notes' },
   { to: '/admin/users', icon: FiUsers, label: 'Manage Users' },
   { to: '/admin/quizzes', icon: FiClipboard, label: 'Manage Quizzes' },
+  { to: '/admin/live', icon: FiClipboard, label: 'Manage Live Quizzes' },
   { to: '/admin/testing-quizzes', icon: FiClipboard, label: 'Testing Quizzes' },
   { to: '/admin/blogs', icon: FiBookOpen, label: 'Manage Blogs' },
   { to: '/admin/community', icon: FiMessageSquare, label: 'Community' },

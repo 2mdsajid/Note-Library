@@ -41,8 +41,7 @@ import { doc, onSnapshot } from 'firebase/firestore'; // Added onSnapshot
 import AdminMessages from './components/admin/AdminMessages'; // Import the AdminMessages component
 import { db } from './lib/firebase'; // Added db import
 import LiveTest from './components/live/LiveTest';
-import QuizManagementDashboard from './components/live/QuizManagementDashboard';
-import AttendLiveQuiz from './components/live/AttendLiveQuiz';
+import LiveQuizManagementDashboard from './components/live/LiveQuizManagementDashboard';
 
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -165,6 +164,7 @@ function App() {
             <Route path="notes" element={<ManageNotes />} />
             <Route path="users" element={<ManageUsers />} />
             <Route path="blogs" element={<ManageBlogs />} />
+            <Route path="live" element={<LiveQuizManagementDashboard />} />
             <Route path="quizzes" element={<ManageQuizzes />} />
             <Route path="testing-quizzes" element={<TestingQuizzes />} />
             <Route path="community" element={<CommunityApp />} />
@@ -187,6 +187,7 @@ function App() {
             <Route path="dashboard" element={<StdDashboard />} />
             <Route path="notes" element={<StudentNotes />} />
             <Route path="quizzes" element={<StudentQuizzes />} />
+            <Route path="live" element={<LiveTest />} />
             <Route path="blogs" element={<StudentBlogs />} />
             <Route path="community" element={<CommunityApp />} />
             <Route path="profile" element={<Profile />} />
@@ -300,23 +301,6 @@ function App() {
               </>
             }
           />
-
-          <Route
-            path="/live"
-            element={<LiveTest />}
-          />
-          <Route
-            path="/live/create"
-            element={<QuizManagementDashboard />}
-          />
-          
-          {/* live test, first in all data, which is archive=false, will appear here automatically */}
-          <Route
-            path="/live/attend"
-            element={<AttendLiveQuiz />}
-          />
-
-
         </Routes>
       </div>
     </HelmetProvider>

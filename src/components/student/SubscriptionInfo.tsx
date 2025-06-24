@@ -66,6 +66,23 @@ const SubscriptionInfo: React.FC = () => {  const { currentUser } = useAuth();
       icon: <Trophy className="w-8 h-8" />,
       color: 'green',
       bgGradient: 'from-green-500 to-green-600'
+    },
+    {
+      id: 'live',
+      name: 'CEE Live Test Series',
+      price: 150,
+      description: 'Live test series for Common Medical Entrance examination every saturday',
+      features: [
+        'Live proctored mock tests',
+        'Real-time performance analysis',
+        'Competitive environment',
+        'Time management practice',
+        'Rank improvement strategies',
+      ],
+      icon: <Clock className="w-8 h-8" />,
+      color: 'purple',
+      bgGradient: 'from-purple-500 to-purple-600',
+      popular: true
     }
   ];
   const handlePurchase = (seriesId: string) => {
@@ -168,7 +185,9 @@ const SubscriptionInfo: React.FC = () => {  const { currentUser } = useAuth();
                   <div className="flex items-baseline">
                     <span className="text-sm text-white/70">RS</span>
                     <span className="text-4xl font-bold mx-2">{series.price}</span>
-                    <span className="text-white/70">/lifetime</span>
+
+                    {/* mentioned series id so for live tese price appears as per test than lifetime */}
+                    <span className="text-white/70">/{series.id !== 'live' ? 'lifetime' : 'test'}</span>
                   </div>
                 </div>
               </div>

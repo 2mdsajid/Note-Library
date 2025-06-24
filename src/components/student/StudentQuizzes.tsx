@@ -29,7 +29,7 @@ interface PaymentRequest {
   userName: string | null;
   userEmail: string | null;
   userPhotoURL?: string | null;
-  seriesPurchased: 'IOE' | 'CEE';
+  seriesPurchased: 'IOE' | 'CEE' | 'LIVE';
   paymentProofFileName: string;
   paymentProofCpanelUrl?: string; // To be updated by backend after cPanel upload
   status: 'pending' | 'approved' | 'rejected';
@@ -57,18 +57,19 @@ const StudentQuizzes: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'series' | 'quiz' | 'result'>('list');
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
-  const [selectedSeries, setSelectedSeries] = useState<'IOE' | 'CEE' | null>(null);
+  const [selectedSeries, setSelectedSeries] = useState<'IOE' | 'CEE' | 'LIVE' | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [purchaseSeries, setPurchaseSeries] = useState<'IOE' | 'CEE' | null>(null);
+  const [purchaseSeries, setPurchaseSeries] = useState<'IOE' | 'CEE' | 'LIVE' |  null>(null);
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
   const [showQRZoom, setShowQRZoom] = useState(false);
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
 
   // Replace localStorage with Firestore user permissions
-  const [userAccess, setUserAccess] = useState<{ ioeAccess: boolean; ceeAccess: boolean }>({
+  const [userAccess, setUserAccess] = useState<{ ioeAccess: boolean; ceeAccess: boolean; liveAccess:boolean }>({
     ioeAccess: false,
-    ceeAccess: false
+    ceeAccess: false,
+    liveAccess:false,
   });
 
   // Filter states for test series
@@ -262,7 +263,7 @@ const StudentQuizzes: React.FC = () => {
   useEffect(() => {
     const fetchUserAccess = async () => {
       if (!currentUser) {
-        setUserAccess({ ioeAccess: false, ceeAccess: false });
+        setUserAccess({ ioeAccess: false, ceeAccess: false, liveAccess:false });
         return;
       }
 
@@ -274,14 +275,15 @@ const StudentQuizzes: React.FC = () => {
           const userData = userDocSnap.data();
           setUserAccess({
             ioeAccess: userData.ioeAccess || false,
-            ceeAccess: userData.ceeAccess || false
+            ceeAccess: userData.ceeAccess || false,
+            liveAccess: userData.liveAccess || false,
           });
         } else {
-          setUserAccess({ ioeAccess: false, ceeAccess: false });
+          setUserAccess({ ioeAccess: false, ceeAccess: false,liveAccess:false });
         }
       } catch (error) {
         console.error('Error fetching user access:', error);
-        setUserAccess({ ioeAccess: false, ceeAccess: false });
+        setUserAccess({ ioeAccess: false, ceeAccess: false,liveAccess:false });
       }
     };
 
@@ -292,7 +294,8 @@ const StudentQuizzes: React.FC = () => {
     setSelectedQuiz(quiz);
     setCurrentView('quiz');
     console.log('Starting quiz:', quiz);
-  };  const handleSelectSeries = (series: 'IOE' | 'CEE') => {
+  };  
+  const handleSelectSeries = (series: 'IOE' | 'CEE' | 'LIVE') => {
     // Check if user has access to the series
     const hasAccess = series === 'IOE' ? userAccess.ioeAccess : userAccess.ceeAccess;
     
@@ -311,7 +314,7 @@ const StudentQuizzes: React.FC = () => {
     setCurrentView('list');
   };
 
-  const handlePurchaseSeries = (series: 'IOE' | 'CEE') => {
+  const handlePurchaseSeries = (series: 'IOE' | 'CEE' | 'LIVE') => {
     setPurchaseSeries(series);
     setShowPurchaseModal(true);
   };
@@ -754,6 +757,87 @@ const StudentQuizzes: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* LIVE Test Series Card */}
+          <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 overflow-hidden border border-gray-100">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold mb-1">Live Test Series</h2>
+                  <p className="text-blue-100">Real-time Competitive Exams</p>
+                </div>
+                <div className="bg-white bg-opacity-20 w-16 h-16 rounded-full flex items-center justify-center">
+                  <span className="text-white text-2xl font-bold">⏱️</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 flex items-center">
+                    <span className="mr-2">📊</span>
+                    Total Tests
+                  </span>
+                  <span className="font-bold text-blue-600 text-lg">20+</span>
+                </div>
+                
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 flex items-center">
+                    <span className="mr-2">🎯</span>
+                    Exam Type
+                  </span>
+                  <span className="font-medium text-gray-700">Competitive Exams</span>
+                </div>
+                
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-gray-600 flex items-center">
+                    <span className="mr-2">⭐</span>
+                    Difficulty
+                  </span>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">Challenging</span>
+                </div>
+                
+                {!userAccess.liveAccess && (
+                  <div className="flex items-center justify-between py-2 border-t border-gray-100 pt-4">
+                    <span className="text-gray-600 flex items-center">
+                      <span className="mr-2">💰</span>
+                      Price
+                    </span>
+                    <span className="font-bold text-orange-600 text-xl">Rs 20 / Test</span>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-3">
+                
+                { userAccess.liveAccess  ? (
+                  // Show full access button if user has access
+                  <button
+                    onClick={() => window.location.href = '/student/live'}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  >
+                    🎯 Start Live Test
+                  </button>
+                ) : (
+                  // Show purchase option and lock if no access
+                  <>
+                    <button
+                      onClick={() => handlePurchaseSeries('LIVE')}
+                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    >
+                      🛒 Purchase Test Series
+                    </button>
+                    
+                    <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 px-6 rounded-xl flex items-center justify-center cursor-not-allowed">
+                      � Series Locked
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+
+
         </div>
 
         {quizzes.length === 0 && !loading && (

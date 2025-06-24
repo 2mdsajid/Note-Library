@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import AddQuizForm from './AddQuizForm';
 import { db } from '../../lib/firebase'; // Assuming firebase is set up
-import { collection, getDocs, deleteDoc, doc, Timestamp } from 'firebase/firestore'; // Removed updateDoc
+import { collection, getDocs, deleteDoc, doc, Timestamp, where, query } from 'firebase/firestore'; // Removed updateDoc
 
 // Define types for client-side quiz data
 interface QuizOptionClient {
@@ -54,44 +54,55 @@ const ManageQuizzes: React.FC = () => {
   const fetchQuizzes = async () => {
     setLoading(true);
     setError(null);
+  
     try {
-      const querySnapshot = await getDocs(collection(db, "quizzes"));
-      const quizzesData = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        
-        // Log the raw data structure for debugging
-        console.log('Raw Firestore quiz data:', doc.id, data);
-        
-        // Map the Firestore data structure to the expected client structure
-        const mappedQuiz: QuizClient = {
-          id: doc.id,
-          title: data.details?.title || data.title || 'Untitled Quiz',
-          grade: data.details?.grade || data.grade || 'Unknown Grade',
-          subject: data.subject,
-          audience: mapFirestoreAudienceToClient(data.details?.targetAudience || data.audience),
-          timeLimit: data.details?.timeLimit || data.timeLimit || 30,
-          questions: (data.questions || []).map((q: any) => ({
-            id: q.id,
-            questionText: q.question || q.questionText, // Map 'question' to 'questionText'
-            options: q.options || [
-              { id: 'opt1', text: q.option1 || '', isCorrect: q.correctOption === '1' },
-              { id: 'opt2', text: q.option2 || '', isCorrect: q.correctOption === '2' },
-              { id: 'opt3', text: q.option3 || '', isCorrect: q.correctOption === '3' },
-              { id: 'opt4', text: q.option4 || '', isCorrect: q.correctOption === '4' }
-            ]
-          })),
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
-        };
-        
-        // Log the mapped quiz for debugging
-        console.log('Mapped quiz data:', mappedQuiz);
-        
-        return mappedQuiz;
-      });
+      // Fetch ALL quizzes from the collection
+      const q = query(collection(db, "quizzes"));
+      const querySnapshot = await getDocs(q);
+  
+      const quizzesData = querySnapshot.docs
+        .map(doc => {
+          // get all the quizzes then filter those which do not have a type field in them
+          //  this will display only the quizzes which are not live
+          const data = doc.data();
+  
+          // Check if 'type' field is missing OR if 'type' is not 'live'
+          const hasNoTypeField = !Object.prototype.hasOwnProperty.call(data, 'type');
+          const typeIsNotLive = data.type !== 'live';
+  
+          if (hasNoTypeField || typeIsNotLive) {
+            // Map the Firestore data structure to the expected client structure
+            const mappedQuiz: QuizClient = {
+              id: doc.id,
+              title: data.details?.title || data.title || 'Untitled Quiz',
+              grade: data.details?.grade || data.grade || 'Unknown Grade',
+              subject: data.subject,
+              audience: mapFirestoreAudienceToClient(data.details?.targetAudience || data.audience),
+              timeLimit: data.details?.timeLimit || data.timeLimit || 30,
+              questions: (data.questions || []).map((q: any) => ({
+                id: q.id,
+                questionText: q.question || q.questionText,
+                options: q.options || [
+                  { id: 'opt1', text: q.option1 || '', isCorrect: q.correctOption === '1' },
+                  { id: 'opt2', text: q.option2 || '', isCorrect: q.correctOption === '2' },
+                  { id: 'opt3', text: q.option3 || '', isCorrect: q.correctOption === '3' },
+                  { id: 'opt4', text: q.option4 || '', isCorrect: q.correctOption === '4' }
+                ]
+              })),
+              createdAt: data.createdAt,
+              updatedAt: data.updatedAt,
+            };
+            return mappedQuiz;
+          }
+          return null; // Return null for quizzes that don't match the criteria
+        })
+        .filter((quiz): quiz is QuizClient => quiz !== null); // Filter out the null values
+  
       // Sort by creation date, newest first
-      quizzesData.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+      quizzesData.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0)); // Add null checks
+  
       setQuizzes(quizzesData);
+  
     } catch (err) {
       console.error("Error fetching quizzes:", err);
       setError("Failed to load quizzes.");

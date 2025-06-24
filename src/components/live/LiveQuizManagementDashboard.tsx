@@ -3,7 +3,7 @@ import CreateLiveQuiz from './CreateLiveQuiz'; // Adjust path if needed
 import ManageQuizzes from './ManageLiveQuizzes'; // Adjust path if needed
 import { useAuth } from '../../contexts/AuthContext';
 
-const QuizManagementDashboard: React.FC = () => {
+const LiveQuizManagementDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'create' | 'manage'>('create'); // Default to 'create'
   const { isAdmin, loading: authLoading } = useAuth();
 
@@ -24,7 +24,7 @@ const QuizManagementDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">Admin Quiz Dashboard</h1>
+        <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">Live Quiz Dashboard</h1>
 
         {/* Tabs Navigation */}
         <div className="flex justify-center mb-8">
@@ -54,4 +54,4 @@ const QuizManagementDashboard: React.FC = () => {
   );
 };
 
-export default QuizManagementDashboard;
+export default LiveQuizManagementDashboard;
